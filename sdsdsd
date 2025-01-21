@@ -1,0 +1,284 @@
+local frag = {fonts={}}; local char = {}; local CoreGui = cloneref(game:GetService("CoreGui"))
+--
+do
+    function frag:registerfont(Name, Weight, Style, Asset)
+        if not isfile(Asset.Id) then writefile(Asset.Id, Asset.Font) end
+        if isfile(Name .. ".font") then delfile(Name .. ".font") end
+        local Data = {
+            name = Name,
+            faces = {
+                {
+                    name = "Regular",
+                    weight = Weight,
+                    style = Style,
+                    assetId = getcustomasset(Asset.Id),
+                },
+            },
+        }
+        writefile(Name .. ".font", game:GetService("HttpService"):JSONEncode(Data))
+        return getcustomasset(Name .. ".font");
+    end
+    frag.fonts.smallestpixel7 = Font.new(frag:registerfont("MontSerrat-Regular", 200, "normal", {
+        Id = "montserrat-regular.ttf",
+        Font = crypt.base64.decode(game:HttpGet("https://raw.githubusercontent.com/cnzins1/zins.priv/refs/heads/main/fonts/montserrat/montserrat-regular"))
+    }))
+end
+--
+frag.esp={enabled=true;box=true;name=true;weapon=true;healthbar=true;maxdist=1500;boxtype="corner";};
+do -- ESP
+    local CreateClass = function(Class, Properties)
+        local ClassInt = typeof(Class) == "string" and Instance.new(Class) or Class
+        --
+        for Property, Value in next, Properties do
+            ClassInt[Property] = Value
+        end
+        --
+        return ClassInt
+    end
+
+    local ESPHolder = CreateClass("ScreenGui", {
+        Parent = CoreGui;
+        Name   = "ESPHolder";
+    })
+
+    function char:DistanceCheck(Player)
+        return math.floor((Player.Position - workspace.CurrentCamera.CFrame.Position).Magnitude)
+    end
+
+    local DupeCheck = function(plr)
+        if ESPHolder:FindFirstChild(plr.Name) then
+            ESPHolder[plr.Name]:Destroy()
+        end
+    end
+
+    function char:getweapon(c)
+        for _, v in pairs(c:GetChildren()) do
+            if (v.Name ~= "HolsterModel" and v:IsA("Model") and v.Name ~= "Hair" and (v:FindFirstChild("Detail") or v:FindFirstChild("Main") or v:FindFirstChild("Handle") or v:FindFirstChild("Attachments") or v:FindFirstChild("ArrowAttach") or v:FindFirstChild("Attach")) and v.PrimaryPart) then
+                return v.Name;
+            end;
+        end;
+
+        return " ";
+    end;
+
+    function char:visible(origin,direction,target,ignore)
+        local params = RaycastParams.new();
+        params.FilterDescendantsInstances = {game.Players.LocalPlayer.Character,target,ignore ~= nil and unpack(ignore)};    
+        return (not workspace:Raycast(origin,direction,params));
+    end
+
+    function char:UpdateESP(plrd)
+        coroutine.wrap(DupeCheck)(plrd)
+
+        local MainFrame         = CreateClass("Frame", {Parent = ESPHolder; Name = plrd.Name})
+        local MainFrameOutline  = CreateClass("UIStroke", {Parent = MainFrame; Name = "MainFrameStroke"})
+        local OutlineFrame      = CreateClass("Frame", {Parent = MainFrame; Name = plrd.Name; Size = UDim2.new(1, 0, 1, 0); BackgroundTransparency = 1})
+        local MainFrameOutline2 = CreateClass("UIStroke", {Parent = OutlineFrame; Name = "MainFrameStroke"})
+        local NameLabel         = CreateClass("TextLabel", {Parent = ESPHolder; Name = "Name"; BackgroundTransparency = 1; Size = UDim2.new(0, 100, 0, 20); FontFace = frag.fonts.smallestpixel7; AnchorPoint = Vector2.new(0.5, 0.5); Position = UDim2.new(0.5, 0, 0, -11); TextSize = 11; TextColor3 = Color3.fromRGB(255, 255, 255); TextStrokeTransparency = 0; TextStrokeColor3 = Color3.new(0, 0, 0), RichText = true})
+        local WeaponLabel       = CreateClass("TextLabel", {Parent = ESPHolder; Name = "Weapon"; BackgroundTransparency = 1; Size = UDim2.new(0, 100, 0, 20); FontFace = frag.fonts.smallestpixel7; AnchorPoint = Vector2.new(0.5, 0.5); Position = UDim2.new(0.5, 0, 1, 0); TextSize = 11; TextColor3 = Color3.fromRGB(255, 255, 255); TextStrokeTransparency = 0; TextStrokeColor3 = Color3.new(0, 0, 0), RichText = true})
+        --
+        local LeftTop 			= CreateClass("Frame", {Name = "LeftTop"; ZIndex = 1; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local LeftSide 			= CreateClass("Frame", {Name = "LeftSide"; ZIndex = 0; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local RightTop 			= CreateClass("Frame", {Name = "RightTop"; ZIndex = 1; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local RightSide 		= CreateClass("Frame", {Name = "RightSide"; ZIndex = 0; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local BottomSide 		= CreateClass("Frame", {Name = "BottomSide"; ZIndex = 1; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local BottomDown 		= CreateClass("Frame", {Name = "BottomDown"; ZIndex = 0; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local BottomRightSide 	= CreateClass("Frame", {Name = "BottomRightSide"; ZIndex = 1; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        local BottomRightDown 	= CreateClass("Frame", {Name = "BottomRightDown"; ZIndex = 0; Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), Position = UDim2.new(0, 0, 0, 0)})
+        --
+        local Frame1 = CreateClass("Frame", {Parent = BottomRightDown; Size = UDim2.new(1, 0, 1, 0); BackgroundColor3 = Color3.fromRGB(255, 255, 255); BorderSizePixel = 0})
+        local Frame2 = CreateClass("Frame", {Parent = RightSide; Size = UDim2.new(1, 0, 1, 0); BackgroundColor3 = Color3.fromRGB(255, 255, 255); BorderSizePixel = 0})
+        local Frame3 = CreateClass("Frame", {Parent = LeftSide; Size = UDim2.new(1, 0, 1, 0); BackgroundColor3 = Color3.fromRGB(255, 255, 255); BorderSizePixel = 0})
+        local Frame4 = CreateClass("Frame", {Parent = BottomDown; Size = UDim2.new(1, 0, 1, 0); BackgroundColor3 = Color3.fromRGB(255, 255, 255); BorderSizePixel = 0})
+        --
+        local Healthbar 		= CreateClass("Frame", {Parent = ESPHolder, BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0})
+        local BehindHealthbar 	= CreateClass("Frame", {Parent = ESPHolder, ZIndex = -1, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0})
+        CreateClass("UIGradient", {Parent = Healthbar, Enabled = true, Rotation = -90, Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 140, 0)), ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 0))}})
+        --
+        local ColorESP = function(Color)
+            LeftTop.BackgroundColor3 = Color
+            LeftSide.BackgroundColor3 = Color
+            RightTop.BackgroundColor3 = Color
+            RightSide.BackgroundColor3 = Color
+            BottomSide.BackgroundColor3 = Color
+            BottomDown.BackgroundColor3 = Color
+            BottomRightSide.BackgroundColor3 = Color
+            BottomRightDown.BackgroundColor3 = Color
+            --
+            NameLabel.TextColor3 = Color
+            WeaponLabel.TextColor3 = Color
+            --
+            Frame1.BackgroundColor3 = Color
+            Frame2.BackgroundColor3 = Color
+            Frame3.BackgroundColor3 = Color
+            Frame4.BackgroundColor3 = Color
+        end
+        local HideESP = function()
+            MainFrame.Visible = false
+            NameLabel.Visible = false
+            WeaponLabel.Visible = false
+            --
+            Healthbar.Visible = false
+            BehindHealthbar.Visible = false
+            --
+            LeftTop.Visible = false
+            LeftSide.Visible = false
+            RightTop.Visible = false
+            RightSide.Visible = false
+            BottomSide.Visible = false
+            BottomDown.Visible = false
+            BottomRightSide.Visible = false
+            BottomRightDown.Visible = false
+        end
+
+        local Connection;
+        Connection = game:GetService("RunService").Heartbeat:Connect(function()
+            local plr = plrd.Character
+            if plr and plr:FindFirstChild("HumanoidRootPart") and plr:FindFirstChild("Humanoid") and plr.Humanoid.Health > 0 then
+                local Pos, OnScreen = workspace.CurrentCamera:WorldToScreenPoint(plr.HumanoidRootPart.Position)
+                local scaleFactor = 15 / (Pos.Z * math.tan(math.rad(workspace.CurrentCamera.FieldOfView * 0.5)) * 2) * 100
+                local Dist = char:DistanceCheck(plr.HumanoidRootPart)
+                local w, h = 2.4 * scaleFactor, 3.79  * scaleFactor
+                local h2 = 3.9  * scaleFactor
+                local IsCorner = frag.esp.boxtype == "corner"
+                local visible = char:visible(workspace.CurrentCamera.CFrame.p, plr.HumanoidRootPart.Position - workspace.CurrentCamera.CFrame.p, plr,{workspace:FindFirstChild('VFX')})
+                --
+                if OnScreen and frag.esp.enabled then
+                    --// Visible
+                    ColorESP(visible and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255))
+                    --Checks 
+                    if frag.esp.box then
+                        if frag.esp.boxtype == "corner" then
+                            LeftTop.Visible = IsCorner
+                            LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2.5)
+                            LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
+                            LeftTop.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            LeftSide.Visible = IsCorner
+                            LeftSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2.5)
+                            LeftSide.Size = UDim2.new(0, 1, 0, h / 5)
+                            LeftSide.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            BottomSide.Visible = IsCorner
+                            BottomSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 1.6) -- Bottom
+                            BottomSide.Size = UDim2.new(0, 1, 0, h / 5)
+                            BottomSide.AnchorPoint = Vector2.new(0, 5)
+                            BottomSide.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            BottomDown.Visible = IsCorner
+                            BottomDown.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 1.6) -- Bottom
+                            BottomDown.Size = UDim2.new(0, w / 5, 0, 1)
+                            BottomDown.AnchorPoint = Vector2.new(0, 1)
+                            BottomDown.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            RightTop.Visible = IsCorner
+                            RightTop.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y - h / 2.5)
+                            RightTop.Size = UDim2.new(0, w / 5, 0, 1)
+                            RightTop.AnchorPoint = Vector2.new(1, 0)
+                            RightTop.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            RightSide.Visible = IsCorner
+                            RightSide.Position = UDim2.new(0, Pos.X + w / 2 - 1, 0, Pos.Y - h / 2.5)
+                            RightSide.Size = UDim2.new(0, 1, 0, h / 5)
+                            RightSide.AnchorPoint = Vector2.new(0, 0)
+                            RightSide.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            BottomRightSide.Visible = IsCorner
+                            BottomRightSide.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 1.6) -- Bottom
+                            BottomRightSide.Size = UDim2.new(0, 1, 0, h / 5)
+                            BottomRightSide.AnchorPoint = Vector2.new(1, 1)
+                            BottomRightSide.BorderColor3 = Color3.fromRGB(0, 0, 0)
+
+                            BottomRightDown.Visible = IsCorner
+                            BottomRightDown.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 1.6) -- Bottom
+                            BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
+                            BottomRightDown.AnchorPoint = Vector2.new(1, 1)
+                            BottomRightDown.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                        elseif frag.esp.boxtype == "box" then
+                            MainFrame.Position = UDim2.new(0, Pos.X - 3 * scaleFactor / 2, 0, Pos.Y - 4.5 * scaleFactor / 2.25)
+                            MainFrame.Size = UDim2.new(0, 3 * scaleFactor, 0, 4.5 * scaleFactor)
+                            MainFrame.Visible = not IsCorner
+                            MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                            MainFrame.BackgroundTransparency = 1
+                            MainFrame.BorderSizePixel = 1
+                            --
+                            MainFrameOutline.Color = Color3.fromRGB(0, 0, 0)
+                            MainFrameOutline.LineJoinMode = Enum.LineJoinMode.Miter
+                            MainFrameOutline.Thickness = 2.25
+                            MainFrameOutline2.Color = Color3.fromRGB(255, 255, 255)
+                            MainFrameOutline2.LineJoinMode = Enum.LineJoinMode.Miter
+                        end
+                    else
+                        MainFrame.Visible = false
+                        LeftTop.Visible = false; LeftSide.Visible = false; RightTop.Visible = false
+                        RightSide.Visible = false; BottomSide.Visible = false; BottomDown.Visible = false
+                        BottomRightSide.Visible = false
+                        BottomRightDown.Visible = false
+                    end
+                    if frag.esp.healthbar then
+                        local health = plr.Humanoid.Health / plr.Humanoid.MaxHealth;
+                        health = math.clamp(health, 0, 100)
+                        Healthbar.Visible = true;
+                        Healthbar.Position = UDim2.new(0, LeftTop.Position.X.Offset - 8, 0, Pos.Y - h / 2.5 + h * (1 - health))
+                        Healthbar.Size = UDim2.new(0, 4, 0, h2 * health)  
+                        Healthbar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                        --
+                        BehindHealthbar.Visible = true;
+                        BehindHealthbar.Position = UDim2.new(0, LeftTop.Position.X.Offset - 8, 0, Pos.Y - h / 2.5)  
+                        BehindHealthbar.Size = UDim2.new(0, 4, 0, h2)
+                        BehindHealthbar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+                    else
+                        Healthbar.Visible = false
+                        BehindHealthbar.Visible = false
+                    end
+                    if frag.esp.name then
+                        NameLabel.Text = plrd.Name.." ["..math.floor(Dist).."]"
+                        NameLabel.Visible = true
+                        NameLabel.Position = UDim2.new(0, Pos.X, 0, Pos.Y - 3 * scaleFactor / 2 - 7)
+                    else
+                        NameLabel.Visible = false
+                    end
+                    --
+                    if frag.esp.weapon then
+                        WeaponLabel.Text = char:getweapon(plr)
+                        WeaponLabel.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 1.62 + 7)
+                        WeaponLabel.Visible = true
+                    else
+                        WeaponLabel.Visible = false
+                    end
+                else
+                    HideESP();
+                end;
+            else
+                HideESP();
+                if not plrd or not plrd.Parent then
+                    MainFrame:Destroy()
+                    NameLabel:Destroy()
+                    WeaponLabel:Destroy()
+                    --
+                    Healthbar:Destroy()
+                    BehindHealthbar:Destroy()
+                    --
+                    LeftTop:Destroy()
+                    LeftSide:Destroy()
+                    RightTop:Destroy()
+                    RightSide:Destroy()
+                    BottomSide:Destroy()
+                    BottomDown:Destroy()
+                    BottomRightSide:Destroy()
+                    BottomRightDown:Destroy()
+                    Connection:Disconnect()
+                end
+            end;
+        end)
+    end
+    --
+    for i, v in next, game:GetService("Players"):GetChildren() do
+        if v ~= game:GetService("Players").LocalPlayer then
+            char:UpdateESP(v)
+        end
+    end
+    game:GetService("Players").PlayerAdded:Connect(function(v)
+        char:UpdateESP(v)
+    end)
+end
